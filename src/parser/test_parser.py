@@ -73,6 +73,10 @@ class TestParser(unittest.TestCase):
         self.assertEqual(len(ast.declarations), 2)
         decl = ast.declarations[0]
         self.assertEqual(decl.__class__.__name__, 'VarDeclNode')
+        self.assertEqual(decl.init_expr.__class__.__name__, 'InitListNode')
+        self.assertEqual(len(decl.init_expr.elements), 3)
+        self.assertEqual([e.value for e in decl.init_expr.elements], ['1', '2', '3'])
+        
         assign = ast.declarations[1]
         # This is a variable declaration with an initializer that accesses the array
         self.assertEqual(assign.__class__.__name__, 'VarDeclNode')

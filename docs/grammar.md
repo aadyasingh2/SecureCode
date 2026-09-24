@@ -7,7 +7,8 @@ Rules defining the structure of programs, variables, types, and function definit
 ```bnf
 program         → (func_def | decl)*
 type            → ('int' | 'char' | 'float') '*'*
-decl            → type IDENTIFIER ('[' INT_LIT ']')? ('=' expr)? ';'
+init_list       → '{' expr (',' expr)* '}'
+decl            → type IDENTIFIER ('[' INT_LIT ']')? ('=' (expr | init_list))? ';'
 func_def        → type IDENTIFIER '(' params? ')' block
 params          → param (',' param)*
 param           → type IDENTIFIER
@@ -55,3 +56,5 @@ func_call       → IDENTIFIER '(' args? ')'
 args            → expr (',' expr)*
 assign_expr     → IDENTIFIER '=' expr
 ```
+
+**Known limitation:** Array access supports only a single index level (`arr[i]`). Multi-dimensional access (`arr[i][j]`) is not supported and will raise a ParserError.

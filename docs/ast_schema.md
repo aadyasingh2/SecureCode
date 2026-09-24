@@ -21,6 +21,7 @@ This document enumerates the fields of each AST node type used by the parser. Al
 | **IdentifierNode** | `name: str`, `line: int` |
 | **ArrayAccessNode** | `name: str`, `index_expr: ASTNode`, `line: int` |
 | **FuncCallNode** | `name: str`, `args: List[ASTNode]`, `line: int` |
+| **InitListNode** | `elements: List[ASTNode]`, `line: int` |
 
 ---
 

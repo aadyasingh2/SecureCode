@@ -15,7 +15,8 @@ from src.parser.ast_nodes import (
     LiteralNode,
     IdentifierNode,
     ArrayAccessNode,
-    FuncCallNode
+    FuncCallNode,
+    InitListNode
 )
 
 from src.analysis.symbol_table import SymbolTable
@@ -95,6 +96,9 @@ class SemanticAnalyzer:
 
         elif isinstance(node, FuncCallNode):
             self.visit_function_call(node)
+
+        elif isinstance(node, InitListNode):
+            self.visit_init_list(node)
 
         elif isinstance(node, LiteralNode):
             pass
@@ -182,6 +186,14 @@ class SemanticAnalyzer:
                 f"Variable '{node.name}' redeclared in the same scope",
                 node.line
             )
+        else:
+            if isinstance(node.init_expr, InitListNode) and node.array_size is not None:
+                if len(node.init_expr.elements) > node.array_size:
+                    self.add_error(
+                        "InitializerOverflow",
+                        f"Too many initializer values for array '{node.name}' (expected {node.array_size}, got {len(node.init_expr.elements)})",
+                        node.line
+                    )
 
     # --------------------------------------------------
     # ASSIGNMENT
@@ -308,3 +320,11 @@ class SemanticAnalyzer:
         # Analyze all arguments.
         for argument in node.args:
             self.visit(argument)
+
+    # --------------------------------------------------
+    # INIT LIST
+    # --------------------------------------------------
+
+    def visit_init_list(self, node):
+        for element in node.elements:
+            self.visit(element)

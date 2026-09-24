@@ -7,6 +7,7 @@ from .ast_nodes import (
     ProgramNode, VarDeclNode, FuncDefNode, ParamNode, BlockNode, AssignNode,
     IfNode, WhileNode, ForNode, ReturnNode, ExprStmtNode, BinOpNode,
     UnaryOpNode, LiteralNode, IdentifierNode, ArrayAccessNode, FuncCallNode,
+    InitListNode
 )
 
 class ParserError(Exception):
@@ -91,19 +92,15 @@ class Parser:
                 self._expect(TokenType.PUNCTUATION, ']')
             init_expr = None
             if self._match(TokenType.OPERATOR, '='):
-                # Support simple expression or brace-initializer for arrays
-                if self._match(TokenType.PUNCTUATION, '{'):
-                    # Skip tokens until matching closing brace
-                    brace_depth = 1
-                    while brace_depth > 0 and self.current.type != TokenType.EOF:
-                        if self._match(TokenType.PUNCTUATION, '{'):
-                            brace_depth += 1
-                        elif self._match(TokenType.PUNCTUATION, '}'):
-                            brace_depth -= 1
-                        else:
-                            self._advance()
-                    # Represent the initializer as a dummy literal node
-                    init_expr = LiteralNode(value='{}', literal_type='block', line=self.current.line)
+                if self.current.type == TokenType.PUNCTUATION and self.current.value == '{':
+                    brace_tok = self._expect(TokenType.PUNCTUATION, '{')
+                    elements = []
+                    if not (self.current.type == TokenType.PUNCTUATION and self.current.value == '}'):
+                        elements.append(self.parse_expr())
+                        while self._match(TokenType.PUNCTUATION, ','):
+                            elements.append(self.parse_expr())
+                    self._expect(TokenType.PUNCTUATION, '}')
+                    init_expr = InitListNode(elements=elements, line=brace_tok.line)
                 else:
                     init_expr = self.parse_expr()
             self._expect(TokenType.PUNCTUATION, ';')

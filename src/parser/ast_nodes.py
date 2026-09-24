@@ -131,3 +131,9 @@ class FuncCallNode(ASTNode):
     name: str
     args: List[ASTNode]
     line: int = 0
+
+
+@dataclass
+class InitListNode(ASTNode):
+    elements: List[ASTNode]
+    line: int = 0
