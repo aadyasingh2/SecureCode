@@ -63,8 +63,12 @@ class CFGBuilder:
         if first_node is not None:
             self.add_edge(entry, first_node)
 
-            for node in last_nodes:
-                self.add_edge(node, exit_node)
+            for item in last_nodes:
+                if isinstance(item, tuple):
+                    node, edge_type = item
+                    self.add_edge(node, exit_node, edge_type=edge_type)
+                else:
+                    self.add_edge(item, exit_node)
 
     # Return statements terminate the function.
             for node, data in self.graph.nodes(data=True):
@@ -101,8 +105,12 @@ class CFGBuilder:
                 first_node = statement_first
 
             # Connect previous statements to current statement.
-            for node in current_nodes:
-                self.add_edge(node, statement_first)
+            for item in current_nodes:
+                if isinstance(item, tuple):
+                    node, edge_type = item
+                    self.add_edge(node, statement_first, edge_type=edge_type)
+                else:
+                    self.add_edge(item, statement_first)
 
             current_nodes = statement_last
 
@@ -161,7 +169,7 @@ class CFGBuilder:
                     edge_type="true"
                 )
             else:
-                then_last = [condition_node]
+                then_last = [(condition_node, "true")]
 
             # ELSE branch
             if statement.else_block is not None:
@@ -194,10 +202,14 @@ class CFGBuilder:
                         edge_type="false"
                     )
                 else:
-                    else_last = [condition_node]
+                    else_last = [(condition_node, "false")]
 
             else:
-                else_last = [condition_node]
+                else_last = [(condition_node, "false")]
+
+            # If both branches never return control (e.g. both return from function)
+            if not then_last and not else_last:
+                return condition_node, []
 
             # Merge point
             merge_node = self.new_node(
@@ -205,11 +217,19 @@ class CFGBuilder:
                 label="IF MERGE"
             )
 
-            for node in then_last:
-                self.add_edge(node, merge_node)
+            for item in then_last:
+                if isinstance(item, tuple):
+                    node, edge_type = item
+                    self.add_edge(node, merge_node, edge_type=edge_type)
+                else:
+                    self.add_edge(item, merge_node)
 
-            for node in else_last:
-                self.add_edge(node, merge_node)
+            for item in else_last:
+                if isinstance(item, tuple):
+                    node, edge_type = item
+                    self.add_edge(node, merge_node, edge_type=edge_type)
+                else:
+                    self.add_edge(item, merge_node)
 
             return condition_node, [merge_node]
 
@@ -237,7 +257,11 @@ class CFGBuilder:
                 )
 
                 # Body → condition
-                for node in body_last:
+                for item in body_last:
+                    if isinstance(item, tuple):
+                        node = item[0]
+                    else:
+                        node = item
                     self.add_edge(
                         node,
                         condition_node,
@@ -245,7 +269,7 @@ class CFGBuilder:
                     )
 
             # False → next statement
-            return condition_node, [condition_node]
+            return condition_node, [(condition_node, "false")]
 
         # ---------------------------------------------
         # FOR LOOP
@@ -298,7 +322,11 @@ class CFGBuilder:
 
                 # Body → update
                 if update_node is not None:
-                    for node in body_last:
+                    for item in body_last:
+                        if isinstance(item, tuple):
+                            node = item[0]
+                        else:
+                            node = item
                         self.add_edge(
                             node,
                             update_node
@@ -312,7 +340,11 @@ class CFGBuilder:
                     )
 
                 else:
-                    for node in body_last:
+                    for item in body_last:
+                        if isinstance(item, tuple):
+                            node = item[0]
+                        else:
+                            node = item
                         self.add_edge(
                             node,
                             condition_node,
@@ -320,7 +352,7 @@ class CFGBuilder:
                         )
 
             # False condition continues forward.
-            return first_node, [condition_node]
+            return first_node, [(condition_node, "false")]
 
         # ---------------------------------------------
         # UNKNOWN STATEMENT
