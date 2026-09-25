@@ -1,0 +1,9 @@
+# Core analysis
+networkx>=3.0        # CFG construction (src/analysis/cfg_builder.py)
+pydot>=2.0           # CFG -> Graphviz DOT export (CFGBuilder.export_dot)
+
+# GUI / integration (Member 4)
+Flask>=3.0
+
+# Testing
+pytest>=8.0
