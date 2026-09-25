@@ -152,10 +152,15 @@ class CFGBuilder:
 
         if isinstance(statement, IfNode):
 
+            # The condition expression is attached to the node so that
+            # data-flow analysis can see the variables it reads.
+            # A condition is pure USE: it never defines a variable.
             condition_node = self.new_node(
-                statements=[],
+                statements=[statement.condition] if statement.condition is not None else [],
                 label="IF CONDITION"
             )
+
+            self.graph.nodes[condition_node]["condition"] = statement.condition
 
             then_first, then_last = self.build_block(
                 statement.then_block
@@ -239,10 +244,15 @@ class CFGBuilder:
 
         if isinstance(statement, WhileNode):
 
+            # The condition expression is attached to the node so that
+            # data-flow analysis can see the variables it reads.
+            # A condition is pure USE: it never defines a variable.
             condition_node = self.new_node(
-                statements=[],
+                statements=[statement.condition] if statement.condition is not None else [],
                 label="WHILE CONDITION"
             )
+
+            self.graph.nodes[condition_node]["condition"] = statement.condition
 
             body_first, body_last = self.build_block(
                 statement.body
@@ -285,10 +295,15 @@ class CFGBuilder:
                     label="FOR INIT"
                 )
 
+            # The condition expression is attached to the node so that
+            # data-flow analysis can see the variables it reads.
+            # A condition is pure USE: it never defines a variable.
             condition_node = self.new_node(
-                statements=[],
+                statements=[statement.condition] if statement.condition is not None else [],
                 label="FOR CONDITION"
             )
+
+            self.graph.nodes[condition_node]["condition"] = statement.condition
 
             update_node = None
 
